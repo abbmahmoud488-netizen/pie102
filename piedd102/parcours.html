@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr" data-ui-lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon Parcours – Module PIE | OFPPT</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* ===== Parcours compact / focus / collapse ===== */
+    .stepsbar{
+      position:sticky; top:66px; z-index:30;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,0));
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--border);
+    }
+    .stepsbar .container{
+      display:flex; gap:10px; padding:10px 0; flex-wrap:wrap; align-items:center;
+    }
+    .step{
+      border:1px solid var(--border); background:var(--panel);
+      color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer;
+      display:flex; align-items:center; gap:10px; user-select:none;
+    }
+    .step.active{ background:linear-gradient(135deg,var(--brand),var(--accent)); color:#fff; border-color:transparent; }
+
+    .progress-wrap{ flex:1 1 200px; display:flex; align-items:center; gap:10px; margin-left:auto; }
+    .progress{ position:relative; height:10px; border-radius:999px; background:rgba(255,255,255,.1); width:220px; overflow:hidden; border:1px solid var(--border); }
+    .progress > span{ position:absolute; inset:0; width:0%; background:linear-gradient(135deg,var(--brand),var(--accent)); }
+
+    .cols{
+      display:grid; gap:18px;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      align-items:start;
+      transition: grid-template-columns .25s ease;
+    }
+    @media (max-width:1200px){ .cols{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width:760px){ .cols{ grid-template-columns: 1fr; } }
+
+    .cols.focus-on{ grid-template-columns: 1fr; }
+
+    .col{
+      border:1px solid var(--border); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      box-shadow: var(--shadow); padding:16px; position:relative;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+    .col.dim{ opacity:.25; pointer-events:none; }
+    .col.focus{ transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+
+    /* Collapsible */
+    .col h2{
+      margin:6px 0 2px; font-weight:900; display:flex; align-items:center; gap:10px;
+      cursor:pointer;
+    }
+    .col h2 .chev{ transition: transform .2s ease; font-size:1.1em }
+    .col.collapsed h2 .chev{ transform: rotate(-90deg); }
+
+    .collapsible{ overflow:hidden; display:grid; grid-template-rows:1fr; transition:grid-template-rows .25s ease, opacity .2s ease; opacity:1; }
+    .col.collapsed .collapsible{ grid-template-rows:0fr; opacity:0; }
+    .collapse-inner{ min-height:0; }
+
+    .meta{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:8px 0 14px }
+    .done-toggle{
+      display:flex; align-items:center; gap:8px;
+      border:1px solid var(--border); background:var(--panel);
+      padding:8px 10px; border-radius:10px; cursor:pointer;
+    }
+    .tools{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+    .tools .btn{ padding:8px 12px }
+
+    .block{ border:1px dashed var(--border); border-radius:12px; padding:12px; margin:10px 0 }
+    .hint{ color:var(--muted); font-size:.9rem }
+    .pill-k{ border:1px solid var(--border); background:var(--panel); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:.85rem }
+
+    .anchor{ scroll-margin-top:110px; }
+
+    @media print{
+      body *{ visibility:hidden !important; }
+      .print-area, .print-area *{ visibility:visible !important; }
+      .print-area{ position:absolute; inset:0 0 auto 0; }
+    }
+
+    .spacer{ flex:0 0 10px }
+   
+   /* Smooth but subtle collapse */
+.collapsible{ transition: grid-template-rows .22s ease, opacity .18s ease; }
+@media (prefers-reduced-motion: reduce){
+  *{ transition: none !important; animation: none !important; }
+}
+
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html"><span class="logo">🧭</span><span>PIE • OFPPT</span></a>
+      <nav class="nav-links">
+        <a href="index.html">Intro</a>
+        <a href="entrepreneurs.html">Entrepreneurs</a>
+        <a href="entreprises.html">Entreprises</a>
+        <a href="parcours.html">Mon Parcours</a>
+      </nav>
+      <div class="controls">
+        <button class="lang-switch" data-switch-lang><span class="icon">🌐</span><span data-lang-pill>FR</span></button>
+        <button class="theme-toggle" data-theme-toggle><span class="icon">🌓</span><span data-theme-pill>Dark</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1 class="m0"><span data-lang="fr">Mon Parcours à l’OFPPT</span><span data-lang="ar">مساري فـ OFPPT</span></h1>
+      <p class="lead"><span data-lang="fr">4 séances — navigue بسهولة، عمّر بالقوالب، وصدر أي حصة PDF.</span><span data-lang="ar">4 حصص — تنقّل بسهولة، عمّر بالقوالب، وصدر أي حصة PDF.</span></p>
+      <div class="pills">
+        <span class="pill">Design Thinking</span><span class="pill">MVP</span><span class="pill">Étude de marché</span><span class="pill">Pitch</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="stepsbar">
+    <div class="container">
+      <a class="step active" data-goto="#s1"><b>1</b><span data-lang="fr">Introduction</span><span data-lang="ar">مقدمة</span></a>
+      <a class="step" data-goto="#s2"><b>2</b><span data-lang="fr">Étude de marché</span><span data-lang="ar">دراسة السوق</span></a>
+      <a class="step" data-goto="#s3"><b>3</b><span data-lang="fr">MVP & Tests</span><span data-lang="ar">النموذج الأولي والتجارب</span></a>
+      <a class="step" data-goto="#s4"><b>4</b><span data-lang="fr">Pitch & Plan</span><span data-lang="ar">العرض والخطة</span></a>
+
+      <div class="spacer"></div>
+      <button class="btn" id="fillAll">🧩 Remplir tout</button>
+      <button class="btn" id="compactAll">📘 طيّ الكل</button>
+      <button class="btn" id="expandAll">📗 فتح الكل</button>
+      <button class="btn" id="resetProgress">🔄 Réinitialiser progression</button>
+
+      <div class="progress-wrap">
+        <small id="prog-label">0/4</small>
+        <div class="progress"><span id="prog-bar"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="section">
+    <div class="container cols" id="cols">
+      <!-- كل الأعمدة بادين مطويين عبر class="collapsed" -->
+      <section id="s1" class="col anchor collapsed" data-session="1">
+        <h2><span class="chev">▸</span><span data-lang="fr">Séance 1 — Introduction</span><span data-lang="ar">الحصة 1 — مقدمة</span></h2>
+        <div class="collapsible"><div class="collapse-inner">
+          <div class="meta">
+            <label class="done-toggle"><input type="checkbox" id="s1done"> <span data-lang="fr">Marquer “lu / fait”</span><span data-lang="ar">واش قريـنا/كملنا؟</span></label>
+            <span class="pill-k">Soft skills</span><span class="pill-k">Mindset</span>
+            <div class="tools">
+              <button class="btn" data-template="s1">🧩 Remplir modèle</button>
+              <button class="btn" data-export="#s1">🖨️ Exporter PDF</button>
+              <button class="btn focus-btn">🔍 Focus</button>
+            </div>
+          </div>
+          <div class="block" id="s1_obj"><h3 class="m0 h" data-lang="fr">Objectifs</h3><h3 class="m0 h" data-lang="ar">الأهداف</h3><ul class="p"></ul><p class="hint">— اكتب هنا شنو بغيتو توصلو ليه…</p></div>
+          <div class="block" id="s1_act"><h3 class="m0 h" data-lang="fr">Activités</h3><h3 class="m0 h" data-lang="ar">أنشطة</h3><ul class="p"></ul></div>
+          <div class="block" id="s1_notes"><h3 class="m0 h">Notes</h3><ul class="p"></ul></div>
+        </div></div>
+      </section>
+
+      <section id="s2" class="col anchor collapsed" data-session="2">
+        <h2><span class="chev">▸</span><span data-lang="fr">Séance 2 — Étude de marché</span><span data-lang="ar">الحصة 2 — دراسة السوق</span></h2>
+        <div class="collapsible"><div class="collapse-inner">
+          <div class="meta">
+            <label class="done-toggle"><input type="checkbox" id="s2done"> <span data-lang="fr">Marquer “lu / fait”</span><span data-lang="ar">واش قريـنا/كملنا؟</span></label>
+            <span class="pill-k">Interviews</span><span class="pill-k">Segments</span>
+            <div class="tools">
+              <button class="btn" data-template="s2">🧩 Remplir modèle</button>
+              <button class="btn" data-export="#s2">🖨️ Exporter PDF</button>
+              <button class="btn focus-btn">🔍 Focus</button>
+            </div>
+          </div>
+          <div class="block" id="s2_hyp"><h3 class="m0 h" data-lang="fr">Hypothèses & clients</h3><h3 class="m0 h" data-lang="ar">الفرضيات والزبناء</h3><ul class="p"></ul></div>
+          <div class="block" id="s2_data"><h3 class="m0 h">Données & insights / المعطيات والأفكار</h3><ul class="p"></ul></div>
+          <div class="block" id="s2_notes"><h3 class="m0 h">Notes</h3><ul class="p"></ul></div>
+        </div></div>
+      </section>
+
+      <section id="s3" class="col anchor collapsed" data-session="3">
+        <h2><span class="chev">▸</span><span data-lang="fr">Séance 3 — MVP & Tests</span><span data-lang="ar">الحصة 3 — النموذج الأولي والتجارب</span></h2>
+        <div class="collapsible"><div class="collapse-inner">
+          <div class="meta">
+            <label class="done-toggle"><input type="checkbox" id="s3done"> <span data-lang="fr">Marquer “lu / fait”</span><span data-lang="ar">واش قريـنا/كملنا؟</span></label>
+            <span class="pill-k">Prototype</span><span class="pill-k">Feedback</span>
+            <div class="tools">
+              <button class="btn" data-template="s3">🧩 Remplir modèle</button>
+              <button class="btn" data-export="#s3">🖨️ Exporter PDF</button>
+              <button class="btn focus-btn">🔍 Focus</button>
+            </div>
+          </div>
+          <div class="block" id="s3_mvp"><h3 class="m0 h">MVP</h3><ul class="p"></ul></div>
+          <div class="block" id="s3_tests"><h3 class="m0 h">Plan de test / خطة التجربة</h3><ul class="p"></ul></div>
+          <div class="block" id="s3_kpi"><h3 class="m0 h">Mesures / القياس</h3><ul class="p"></ul></div>
+        </div></div>
+      </section>
+
+      <section id="s4" class="col anchor collapsed" data-session="4">
+        <h2><span class="chev">▸</span><span data-lang="fr">Séance 4 — Pitch & Plan</span><span data-lang="ar">الحصة 4 — العرض والخطة</span></h2>
+        <div class="collapsible"><div class="collapse-inner">
+          <div class="meta">
+            <label class="done-toggle"><input type="checkbox" id="s4done"> <span data-lang="fr">Marquer “lu / fait”</span><span data-lang="ar">واش قريـنا/كملنا؟</span></label>
+            <span class="pill-k">Pitch</span><span class="pill-k">Roadmap</span>
+            <div class="tools">
+              <button class="btn" data-template="s4">🧩 Remplir modèle</button>
+              <button class="btn" data-export="#s4">🖨️ Exporter PDF</button>
+              <button class="btn focus-btn">🔍 Focus</button>
+            </div>
+          </div>
+          <div class="block" id="s4_struct"><h3 class="m0 h">Structure du pitch / بنية العرض</h3><ul class="p"></ul></div>
+          <div class="block" id="s4_plan"><h3 class="m0 h">Plan 4 semaines / خطة 4 أسابيع</h3><ul class="p"></ul></div>
+          <div class="block" id="s4_notes"><h3 class="m0 h">Notes</h3><ul class="p"></ul></div>
+        </div></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div data-lang="fr">Fait pour Mahmoud • OFPPT • Module PIE — Site bilingue (FR/AR).</div>
+      <div data-lang="ar">مصنوع لمحمود • OFPPT • وحدة PIE — موقع ثنائي اللغة (فرنسية/عربية).</div>
+    </div>
+  </footer>
+
+  <div id="print-area" class="print-area" style="display:none;"></div>
+
+  <script src="assets/app.js"></script>
+  <script>
+    /* === Steps navigation + open targeted section === */
+    (function(){
+      const steps = Array.from(document.querySelectorAll('.step'));
+      function goTo(hash){
+        const el = document.querySelector(hash);
+        if(!el) return;
+        steps.forEach(s=>s.classList.toggle('active', s.dataset.goto===hash));
+        // collapse all then expand target
+        document.querySelectorAll('.col').forEach(c=> c.classList.add('collapsed'));
+        el.classList.remove('collapsed');
+        el.scrollIntoView({behavior:'smooth', block:'start'});
+        history.replaceState(null,'',hash);
+      }
+      steps.forEach(s=> s.addEventListener('click', ()=> goTo(s.dataset.goto)));
+      window.addEventListener('keydown', (e)=>{
+        if(e.key!=='ArrowRight' && e.key!=='ArrowLeft') return;
+        const idx = steps.findIndex(s=> s.classList.contains('active'));
+        let ni = idx + (e.key==='ArrowRight'? 1 : -1);
+        if(ni<0) ni=steps.length-1; if(ni>=steps.length) ni=0;
+        goTo(steps[ni].dataset.goto);
+      });
+      // initial: keep ALL collapsed (نخليو الصفحة نقية)
+      const initial = location.hash && document.querySelector(location.hash) ? location.hash : '#s1';
+      history.replaceState(null,'',initial);
+      // خليه مطوي حتى يختار المستخدم شنو يفتح
+      // إلا بغيت نفتح س1 تلقائياً، فك التعليق تحت:
+      // goTo(initial);
+    })();
+
+    /* === Progress persistence === */
+    (function(){
+      const ids = ['s1done','s2done','s3done','s4done'];
+      const KEY = 'pie-parcours-done';
+      let state = {};
+      try{ state = JSON.parse(localStorage.getItem(KEY) || '{}'); }catch(e){}
+      ids.forEach(id=>{
+        const el = document.getElementById(id);
+        if(!el) return;
+        el.checked = !!state[id];
+        el.addEventListener('change', ()=>{
+          state[id] = el.checked;
+          try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+          updateProgress();
+        });
+      });
+      const bar = document.getElementById('prog-bar');
+      const label = document.getElementById('prog-label');
+      function updateProgress(){
+        const done = ids.filter(id => document.getElementById(id)?.checked).length;
+        const pct = Math.round((done/ids.length)*100);
+        if(bar) bar.style.width = pct + '%';
+        if(label) label.textContent = done + '/4';
+      }
+      updateProgress();
+      document.getElementById('resetProgress')?.addEventListener('click', ()=>{
+        localStorage.removeItem(KEY);
+        ids.forEach(id=>{ const el = document.getElementById(id); if(el) el.checked = false; });
+        updateProgress();
+      });
+    })();
+
+    /* === CONTENT (نفس المحتوى اللي جهزته ليك قبل) === */
+    const CONTENT = {
+      s1:{objectifs:{fr:["Découvrir le module PIE: Parcours d’Initiation à l’Entrepreneuriat.","Comprendre ce que vise le module: mindset, opportunités, passage de l’idée à l’action.","Aperçu du programme: idéation, étude de marché, MVP & tests, pitch final, travail en équipe."],ar:["التعرّف على وحدة PIE: مسار التمهيد لريادة الأعمال.","فهم هدف الوحدة: طريقة تفكير المقاول، اقتناص الفرص، الإنتقال من الفكرة إلى التطبيق.","نظرة على المحتوى: توليد الأفكار، دراسة السوق، النموذج الأولي والاختبارات، العرض النهائي، والعمل ضمن فريق."]},activites:{fr:["Brainstorm: Qu’est-ce qu’être entrepreneur ? Différences salarié vs entrepreneur.","Carte d’objectifs personnels: ce que j’attends du module (compétences, projet, réseau).","Mini-intro légale & soft skills: auto-entrepreneur, collaboration, communication, prise de parole."],ar:["عصف ذهني: ما معنى أن تكون مقاولاً؟ الفرق بين الأجير والمقاول.","خريطة أهداف شخصية: شنو باغي نربح من الوحدة (مهارات، مشروع، علاقات).","تقديم سريع قانوني ومهارات ناعمة: مقاول ذاتي، تعاون، تواصل، عرض شفوي."]},notes:["Livrable: objectifs du module (3–5 points) • مرجع: autoentrepreneur.ma","Conseil: إبدا صغير وتكرّر بسرعة • Keep it simple, test early."]},
+      s2:{hyp_clients:{fr:["Devoir: rechercher 2 histoires d’entrepreneur(e)s: 1 marocain(e) + 1 étranger(ère).","Pour chaque histoire: contexte, démarrage, grandes étapes, clés de réussite, sources (liens)."],ar:["الواجب: نبحثو على جوج قصص لمقاولين: 1 مغربي(ة) + 1 أجنبي(ة).","لكل قصة: السياق والبداية، أهم المراحل، مفاتيح النجاح، والمراجع (روابط)."]},data_insights:["Critères: authenticité des infos، وضوح الخطوات، واقعية الدروس المستفادة.","Format conseillé: fiche 8–12 سطر/قصة + 3 مفاتيح نجاح + مرجع واحد على الأقل.","Idées pour chercher: مواقع الشركات، مقالات صحفية، صفحات لينكدإن."],notes:["Livrable: 2 fiches A4 (FR/AR ممكن مزج) + روابط المصادر.","Tips: ركّز على ‘شنو تعلمت أنا’ مشي غير السيرة."]},
+      s3:{mvp:["Idée 1 — «بْواوْق على شكل جمل (Camel Pins)»: تصميم وصناعة دبابيس/بروشات مستوحاة من الجمل.","• Cibles: تلاميذ/طلاب، سياح، هدايا محلية.","• Production: قص ليزر/طباعة ثلاثية/مورد محلي؛ تغليف بسيط بعلامة جذّابة.","• Distribution: إنستغرام/تيك توك + متاجر تذكارات + أكشاك مناسبات.","Idée 2 — «حقائب تغنّي عند الفتح (Smart Bags)»: حقيبة مزوّدة بموديول صوت يشتغل عند الفتح.","• Cibles: هدايا طريفة، أطفال/أنشطة مدرسية، محتوى ترفيهي.","• Production: حقيبة + موديول صوت صغير + بطارية + زر/مستشعر فتح.","• Distribution: متاجر هدايا، ماركِتبليس، فيديوهات ديمو قصيرة."],tests:["1) المثابرة / Persévérance: كيعطّل الطلب → نكمّل المتجر ونبدّل مورد بسرعة.","2) التعلم السريع / Apprentissage: كنفشل فإعلان → كنجرّب صيغة/جمهور آخر ونقيس.","3) الإصغاء للزبون / Écoute client: آراء سلبية → نحسّن التغليف وخدمة ما بعد البيع.","4) الإبداع العملي / Créativité utile: نحول مواد محلية (جلد/خشب) لمنتج حديث.","5) إدارة الوقت / Gestion du temps: سبْرينت أسبوعي بمهام واضحة ومسؤوليات.","6) الجرأة المحسوبة / Risque calculé: تجربة 100 قطعة أولاً قبل إنتاج كبير.","7) العمل ضمن فريق / Travail d’équipe: تقسيم أدوار (تصميم/محتوى/مبيعات).","8) التفاوض / Négociation: نطلب عيّنة مجانية وتخفيض مقابل حجم وعدد.","9) الانضباط المالي / Discipline: هامش ربح محدد، تتبّع تكلفة القطعة.","10) الترويج الذكي / Marketing: قصص قصيرة Reels/Shorts تُظهر الاستخدام والقيمة."],kpi:["Assignation: جوج مجموعات — كل مجموعة تخدم على فكرة.","الخطوة 1 (اليوم): Moodboard + اسم/لوغو مؤقت + 3 تصاميم أولية.","الخطوة 2 (48h): بروتوتيب بسيط + صور/ڤيديو 20–30 ثانية.","الخطوة 3 (أسبوع): 10 تعليقات من مستعملين محتملين + تعديل المنتج.","KPIs: تكلفة أولية/قطعة، هامش تقديري، 10 ملاحظات زبناء، نية الشراء (%)."]},
+      s4:{structure_pitch:["ما الذي يميّز المقاول؟ • رؤية واضحة + فعل سريع + تعلّم مستمر.","الانطلاق: مشكل حقيقي + حل بسيط + زبون محدّد + قناة وصول واضحة.","التركيز: قيمة للزبون > ‘الجمالية’ فقط؛ البيع قبل الإتقان الكامل.","بناء العادة: ساعة عمل مركّزة يومياً على أهم مهمة (بيع/تطوير/تواصل).","شبكة مساعدة: أستاذ، زملاء، موردون، زبناء أوائل."],plan4s:["S1: اختبار الفكرة مع 10 أشخاص + تعديل العرض.","S2: أول بيع/طلب تجريبي + صياغة سعر واقعي.","S3: قنوات تسويق بسيطة (IG/TikTok/WhatsApp) + صور/ڤيديو قصير.","S4: Mini pitch: ماذا تعلمت؟ ماذا سأفعل الأسبوع القادم؟"],notes:["قاعدة ذهبية: ‘بيع صغير بسرعة’ > ‘كامل مثالي بلا زبناء’.","Keep learning, keep shipping. شحن مستمر وتعلّم دائم."]}
+    };
+
+    function toLis(arr){ return (arr||[]).map(t=>`<li>${t}</li>`).join(''); }
+    function applySession(key){
+      const c = CONTENT[key]||{};
+      if(key==='s1'){
+        document.querySelector('#s1_obj .p').innerHTML = toLis([...(c.objectifs?.fr||[]), ...(c.objectifs?.ar||[])]);
+        document.querySelector('#s1_act .p').innerHTML = toLis([...(c.activites?.fr||[]), ...(c.activites?.ar||[])]);
+        document.querySelector('#s1_notes .p').innerHTML = toLis(c.notes||[]);
+      }
+      if(key==='s2'){
+        document.querySelector('#s2_hyp .p').innerHTML = toLis([...(c.hyp_clients?.fr||[]), ...(c.hyp_clients?.ar||[])]);
+        document.querySelector('#s2_data .p').innerHTML = toLis(c.data_insights||[]);
+        document.querySelector('#s2_notes .p').innerHTML = toLis(c.notes||[]);
+      }
+      if(key==='s3'){
+        document.querySelector('#s3_mvp .p').innerHTML = toLis(c.mvp||[]);
+        document.querySelector('#s3_tests .p').innerHTML = toLis(c.tests||[]);
+        document.querySelector('#s3_kpi .p').innerHTML = toLis(c.kpi||[]);
+      }
+      if(key==='s4'){
+        document.querySelector('#s4_struct .p').innerHTML = toLis(c.structure_pitch||[]);
+        document.querySelector('#s4_plan .p').innerHTML = toLis(c.plan4s||[]);
+        document.querySelector('#s4_notes .p').innerHTML = toLis(c.notes||[]);
+      }
+    }
+    function applyAll(){ ['s1','s2','s3','s4'].forEach(applySession); }
+    applyAll();
+
+    // Export PDF
+    (function(){
+      const printArea = document.getElementById('print-area');
+      function exportCol(selector){
+        const col = document.querySelector(selector);
+        if(!col) return;
+        printArea.innerHTML = '';
+        const clone = col.cloneNode(true);
+        const wrap = document.createElement('div');
+        wrap.style.padding = '16px'; wrap.style.maxWidth = '900px'; wrap.style.margin = '0 auto';
+        wrap.appendChild(clone);
+        printArea.appendChild(wrap);
+        printArea.style.display = 'block'; window.print();
+        setTimeout(()=>{ printArea.style.display = 'none'; printArea.innerHTML=''; }, 100);
+      }
+      document.querySelectorAll('[data-export]').forEach(btn=>{
+        btn.addEventListener('click', ()=> exportCol(btn.dataset.export));
+      });
+    })();
+
+    // Collapse & Focus
+    (function(){
+      const cols = document.getElementById('cols');
+      const sections = Array.from(document.querySelectorAll('.col'));
+
+      function clearFocus(){
+        cols.classList.remove('focus-on');
+        sections.forEach(s=>{ s.classList.remove('focus','dim'); });
+        sections.forEach(sec=>{
+          const b = sec.querySelector('.focus-btn');
+          if(b) b.textContent = '🔍 Focus';
+        });
+      }
+
+      // Toggle by title
+      sections.forEach(sec=>{
+        sec.querySelector('h2').addEventListener('click', (e)=>{
+          if(e.target.closest('button')) return;
+          sec.classList.toggle('collapsed');
+        });
+        sec.querySelector('.focus-btn').addEventListener('click', ()=>{
+          const already = sec.classList.contains('focus');
+          clearFocus();
+          if(!already){
+            cols.classList.add('focus-on');
+            sec.classList.add('focus');
+            sections.filter(s=>s!==sec).forEach(s=> s.classList.add('dim'));
+            sec.querySelector('.focus-btn').textContent = '⤢ Normal';
+            sec.scrollIntoView({behavior:'smooth', block:'start'});
+          }
+        });
+      });
+
+      // Global buttons
+      document.getElementById('compactAll')?.addEventListener('click', ()=>{
+        clearFocus();
+        sections.forEach(s=> s.classList.add('collapsed'));
+      });
+      document.getElementById('expandAll')?.addEventListener('click', ()=>{
+        clearFocus();
+        sections.forEach(s=> s.classList.remove('collapsed'));
+      });
+
+      // Fill all button
+      document.getElementById('fillAll')?.addEventListener('click', applyAll);
+    })();
+  </script>
+</body>
+</html>

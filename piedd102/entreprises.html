@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="fr" data-ui-lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entreprises & Secteurs – Module PIE | OFPPT</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* ====== Extras for Entreprises page ====== */
+    .toolbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+    .search-input{
+      flex:1 1 280px; border:1px solid var(--border); background:var(--panel);
+      color:var(--text); padding:10px 12px; border-radius:10px; outline:none;
+    }
+    .search-input:focus{ box-shadow: var(--ring); }
+    .tag-btn{
+      border:1px solid var(--border); background:var(--panel); color:var(--muted);
+      padding:8px 12px; border-radius:999px; cursor:pointer; user-select:none;
+    }
+    .tag-btn.active{ background:linear-gradient(135deg,var(--brand),var(--accent)); color:#fff; border-color:transparent; }
+
+    .c-grid{ display:grid; gap:28px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (max-width: 1100px){ .c-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 720px){ .c-grid{ grid-template-columns: 1fr; } }
+
+    .c-card{
+      position:relative; overflow:hidden;
+      border:1px solid var(--border); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--shadow); cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .25s ease;
+    }
+    .c-card:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+    .c-img{ width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-bottom:1px solid var(--border); }
+    .c-body{ padding:16px 16px 18px; }
+    .c-name{ margin:6px 0 6px; font-weight:900; font-size: clamp(1.05rem, .9rem + .7vw, 1.35rem); }
+    .c-desc{ color:var(--muted); margin:0 0 10px; }
+    .c-pills{ display:flex; gap:8px; flex-wrap:wrap; }
+    .c-pill{ border:1px solid var(--border); background:var(--panel); color:var(--muted); border-radius:999px; padding:6px 10px; font-size:.85rem; }
+
+    .load-more{ display:block; margin:28px auto 0; }
+
+    /* Modal */
+    .modal{ position:fixed; inset:0; display:none; place-items:center; padding:18px; background: rgba(0,0,0,.55); z-index:90; }
+    .modal.on{ display:grid; }
+    .modal-box{
+      width:min(900px, 94vw);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+      border:1px solid var(--border); border-radius:22px; box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 18px; border-bottom:1px solid var(--border); }
+    .modal-head h3{ margin:0; font-size:1.4rem; }
+    .modal-close{ border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:10px; padding:8px 12px; cursor:pointer; }
+    .modal-content{ display:grid; grid-template-columns: 180px 1fr; gap:18px; padding:18px; }
+    @media (max-width: 720px){ .modal-content{ grid-template-columns: 1fr; } }
+    .modal-img{ width:100%; border-radius:12px; border:1px solid var(--border); background:#0b1220; }
+    .story h4{ margin:10px 0 6px; }
+    .meta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .meta .pill{ border:1px solid var(--border); background:var(--panel); border-radius:999px; padding:6px 10px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Accueil">
+        <span class="logo" aria-hidden="true">🧭</span>
+        <span>PIE • OFPPT</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Intro</a>
+        <a href="entrepreneurs.html">Entrepreneurs</a>
+        <a href="entreprises.html">Entreprises</a>
+        <a href="parcours.html">Mon Parcours</a>
+      </nav>
+      <div class="controls">
+        <button class="lang-switch" data-switch-lang><span class="icon">🌐</span><span data-lang-pill>FR</span></button>
+        <button class="theme-toggle" data-theme-toggle><span class="icon">🌓</span> <span data-theme-pill>Dark</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="section hero">
+    <div class="container">
+      <h1><span data-lang="fr">Entreprises & Secteurs</span><span data-lang="ar">الشركات والقطاعات</span></h1>
+      <p class="lead max-900"><span data-lang="fr">Panorama des secteurs porteurs (Maroc & Monde) avec études de cas.</span><span data-lang="ar">نظرة على القطاعات القوية فالمغرب والعالم مع حالات تطبيقية.</span></p>
+    </div>
+  </section>
+
+  <main class="section">
+    <div class="container">
+      <!-- ===== Toolbar: search + tag filters ===== -->
+      <div class="toolbar">
+        <input id="q" class="search-input" placeholder="Rechercher / ابحث (ex: énergie, retail, Maroc, SaaS…)" />
+        <button class="tag-btn" data-tag="Maroc">Maroc</button>
+        <button class="tag-btn" data-tag="Monde">Monde</button>
+        <button class="tag-btn" data-tag="Tech">Tech</button>
+        <button class="tag-btn" data-tag="Énergie">Énergie</button>
+        <button class="tag-btn" data-tag="Agro">Agro</button>
+        <button class="tag-btn" data-tag="Industrie">Industrie</button>
+        <button class="tag-btn" data-tag="Tourisme">Tourisme</button>
+        <button class="tag-btn" data-tag="Services">Services</button>
+        <button class="tag-btn" data-clear>Tout / الكل</button>
+      </div>
+
+      <div class="c-grid" id="c-grid"></div>
+
+      <div class="center">
+        <button id="loadMore" class="btn load-more">Charger plus / عرض المزيد</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Modal ===== -->
+  <div class="modal" id="c-modal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="m-title">—</h3>
+        <button class="modal-close" id="m-close">✕</button>
+      </div>
+      <div class="modal-content">
+        <img id="m-img" class="modal-img" src="" alt="">
+        <div class="story">
+          <div class="meta" id="m-tags"></div>
+
+          <h4 data-lang="fr">Modèle & départ</h4>
+          <h4 data-lang="ar">النموذج والبداية</h4>
+          <p id="m-start-fr" data-lang="fr"></p>
+          <p id="m-start-ar" data-lang="ar"></p>
+
+          <h4 data-lang="fr">Étapes clés</h4>
+          <h4 data-lang="ar">مراحل أساسية</h4>
+          <ul id="m-steps-fr" data-lang="fr"></ul>
+          <ul id="m-steps-ar" data-lang="ar"></ul>
+
+          <h4 data-lang="fr">Opportunités & facteurs</h4>
+          <h4 data-lang="ar">فرص وعوامل نجاح</h4>
+          <ul id="m-keys-fr" data-lang="fr"></ul>
+          <ul id="m-keys-ar" data-lang="ar"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div data-lang="fr">Fait pour Mahmoud • OFPPT • Module PIE — Site bilingue (FR/AR).</div>
+      <div data-lang="ar">مصنوع لمحمود • OFPPT • وحدة PIE — موقع ثنائي اللغة (فرنسية/عربية).</div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+  <script>
+    /* ===== Data des entreprises (🇲🇦 + 🌍) =====
+       صور مؤقتة داخل assets/companies/*.jpg — بدّلهم وقت ما توفروا الحقيقيين.
+    */
+    const DATA = [
+      // ==================== 🇲🇦 Maroc ====================
+      {
+        id:'ocp-group', img:'assets/companies/ocp-group.jpg',
+        region:'Maroc', sector:'Industrie',
+        name:'OCP Group',
+        desc_fr:'Phosphates & engrais; intégration industrielle, R&D et durabilité.',
+        desc_ar:'الفوسفاط والأسمدة؛ اندماج صناعي، بحث وتطوير واستدامة.',
+        tags:['Industrie','Agro','Export'],
+        start_fr:'Transformation de la ressource phosphate en chaîne de valeur d’engrais.',
+        start_ar:'تحويل الفوسفاط إلى سلسلة قيمة للأسمدة.',
+        steps_fr:['Capacité & logistique','Produits à valeur ajoutée','Initiatives durables'],
+        steps_ar:['رفع الطاقة واللوجستيك','منتجات ذات قيمة مضافة','مبادرات الاستدامة'],
+        keys_fr:['Intégration','Innovation','Supply chain'],
+        keys_ar:['اندماج','ابتكار','سلاسل التوريد']
+      },
+      {
+        id:'maroc-telecom', img:'assets/companies/maroc-telecom.jpg',
+        region:'Maroc', sector:'Tech',
+        name:'Maroc Telecom',
+        desc_fr:'Télécom fixe/mobile; couverture, qualité de service et offres packagées.',
+        desc_ar:'اتصالات ثابتة ومتحركة؛ تغطية وجودة وخدمات مجمعة.',
+        tags:['Telecom','Tech','Services'],
+        start_fr:'Extension du réseau et services mobiles à grande échelle.',
+        start_ar:'توسيع الشبكة والخدمات المتنقلة على نطاق واسع.',
+        steps_fr:['3G/4G/5G','Fibre','Services entreprises'],
+        steps_ar:['3G/4G/5G','ألياف بصرية','خدمات للمقاولات'],
+        keys_fr:['Couverture','Fiabilité','Bundles'],
+        keys_ar:['تغطية','موثوقية','باقات']
+      },
+      {
+        id:'attijariwafa-bank', img:'assets/companies/attijariwafa.jpg',
+        region:'Maroc', sector:'Services',
+        name:'Attijariwafa Bank',
+        desc_fr:'Banque & financement; réseau panafricain, digitalisation et proximité.',
+        desc_ar:'بنوك وتمويل؛ شبكة إفريقية، رقمنة وقرب.',
+        tags:['Finance','Services','Réseau'],
+        start_fr:'Développement retail & entreprises; offres digitales.',
+        start_ar:'تطوير خدمات للأفراد والشركات؛ عروض رقمية.',
+        steps_fr:['Expansion régionale','Plateformes digitales','Partenariats'],
+        steps_ar:['توسع جهوي','منصات رقمية','شراكات'],
+        keys_fr:['Distribution','Innovation','Gouvernance'],
+        keys_ar:['توزيع','ابتكار','حوكمة']
+      },
+      {
+        id:'bank-of-africa', img:'assets/companies/boa.jpg',
+        region:'Maroc', sector:'Services',
+        name:'BMCE Bank of Africa',
+        desc_fr:'Banque de réseau & investissement; ouverture africaine.',
+        desc_ar:'بنوك شبكة واستثمار؛ انفتاح إفريقي.',
+        tags:['Finance','Investissement','Afrique'],
+        start_fr:'Positionnement sur les corridors Afrique.',
+        start_ar:'تموقع على ممرات إفريقيا.',
+        steps_fr:['Offres entreprises','Finance verte','Digital'],
+        steps_ar:['عروض للشركات','تمويل أخضر','رقمي'],
+        keys_fr:['Ancrage régional','Innovation','Gestion du risque'],
+        keys_ar:['ارتكاز جهوي','ابتكار','تدبير المخاطر']
+      },
+      {
+        id:'addoha', img:'assets/companies/addoha.jpg',
+        region:'Maroc', sector:'Industrie',
+        name:'Addoha (Groupe Anas Sefrioui)',
+        desc_fr:'Immobilier & construction; industrialisation du logement.',
+        desc_ar:'العقار والبناء؛ تصنيع السكن.',
+        tags:['Immobilier','Construction','Coûts'],
+        start_fr:'Projets de logements accessibles à grande échelle.',
+        start_ar:'مشاريع سكن في المتناول وبحجم كبير.',
+        steps_fr:['Intégration construction','Optimisation coûts','Extension'],
+        steps_ar:['دمج حلقات البناء','ترشيد التكاليف','توسّع'],
+        keys_fr:['Process','Prix','Échelle'],
+        keys_ar:['عمليات','ثمن','حجم']
+      },
+      {
+        id:'marjane-holding', img:'assets/companies/marjane.jpg',
+        region:'Maroc', sector:'Services',
+        name:'Marjane Holding',
+        desc_fr:'Retail & grande distribution; logistique et expérience client.',
+        desc_ar:'التجزئة والتوزيع الكبير؛ لوجستيك وتجربة الزبون.',
+        tags:['Retail','Distribution','Logistique'],
+        start_fr:'Déploiement d’hypermarchés & marketplace.',
+        start_ar:'إطلاق هايبرماركات ومنصات بيع.',
+        steps_fr:['Chaîne logistique','Marques propres','Digital retail'],
+        steps_ar:['سلسلة لوجستية','علامات خاصة','تجزئة رقمية'],
+        keys_fr:['Opérations','Choix','Prix'],
+        keys_ar:['تشغيل','اختيار','ثمن']
+      },
+      {
+        id:'afriquia-gaz', img:'assets/companies/afriquia-gaz.jpg',
+        region:'Maroc', sector:'Énergie',
+        name:'Afriquia Gaz',
+        desc_fr:'Énergie (GPL); réseau, sécurité et service.',
+        desc_ar:'الطاقة (غاز البوتان/البروبان)؛ شبكة، سلامة وخدمة.',
+        tags:['Énergie','Distribution','Sécurité'],
+        start_fr:'Réseau de distribution & logistique GPL.',
+        start_ar:'شبكة توزيع ولوجستيك الغاز.',
+        steps_fr:['Qualité & sécurité','Couverture nationale','Solutions pro'],
+        steps_ar:['جودة وسلامة','تغطية وطنية','حلول للمحترفين'],
+        keys_fr:['Fiabilité','Réseau','SAV'],
+        keys_ar:['موثوقية','شبكة','خدمة ما بعد البيع']
+      },
+      {
+        id:'inwi', img:'assets/companies/inwi.jpg',
+        region:'Maroc', sector:'Tech',
+        name:'Inwi',
+        desc_fr:'Télécom & data; offres mobiles, fixes & cloud.',
+        desc_ar:'اتصالات وبيانات؛ عروض موبايل وثابت وسحابة.',
+        tags:['Telecom','Cloud','Tech'],
+        start_fr:'Positionnement challenger & innovation d’offres.',
+        start_ar:'تموقع كمنافس وابتكار في العروض.',
+        steps_fr:['4G/5G','Datacenters','Offres entreprises'],
+        steps_ar:['4G/5G','مراكز بيانات','عروض للشركات'],
+        keys_fr:['Prix','Innovation','Expérience'],
+        keys_ar:['الثمن','ابتكار','تجربة']
+      },
+      {
+        id:'royal-air-maroc', img:'assets/companies/ram.jpg',
+        region:'Maroc', sector:'Services',
+        name:'Royal Air Maroc',
+        desc_fr:'Compagnie aérienne; hub régional, flotte & expérience passager.',
+        desc_ar:'شركة الطيران الوطنية؛ محور جهوي، أسطول وتجربة مسافر.',
+        tags:['Transport','Tourisme','Logistique'],
+        start_fr:'Hub Casablanca & liaisons Afrique-Europe.',
+        start_ar:'محور الدار البيضاء وربط إفريقيا بأوروبا.',
+        steps_fr:['Modernisation flotte','Alliances','Digitalisation'],
+        steps_ar:['تحديث الأسطول','تحالفات','رقمنة'],
+        keys_fr:['Réseau','Ponctualité','Service'],
+        keys_ar:['شبكة','انضباط','خدمة']
+      },
+      {
+        id:'saham-group', img:'assets/companies/saham.jpg',
+        region:'Maroc', sector:'Services',
+        name:'Saham Group',
+        desc_fr:'Assurance & services; investissement et diversification.',
+        desc_ar:'تأمينات وخدمات؛ استثمار وتنويع.',
+        tags:['Assurance','Services','Investissement'],
+        start_fr:'Développement assurance puis diversification.',
+        start_ar:'تطوير التأمين ثم التنويع.',
+        steps_fr:['Croissance organique','Partenariats','Investissements'],
+        steps_ar:['نمو عضوي','شراكات','استثمارات'],
+        keys_fr:['Gestion','Marchés','Capitaux'],
+        keys_ar:['تسيير','أسواق','رؤوس أموال']
+      },
+
+      // ==================== 🌍 Étrangères ====================
+      {
+        id:'amazon', img:'assets/companies/amazon.jpg',
+        region:'Monde', sector:'Services',
+        name:'Amazon',
+        desc_fr:'Retail & cloud; obsession client, logistique et marketplace.',
+        desc_ar:'تجزئة وسحابة؛ هوس بالزبون، لوجستيك ومنصة.',
+        tags:['Retail','Plateforme','Logistique'],
+        start_fr:'Librairie en ligne → diversification produits.',
+        start_ar:'مكتبة على النت → تنويع المنتجات.',
+        steps_fr:['Prime & AWS','Réseau logistique','Marketplace globale'],
+        steps_ar:['برايم وAWS','شبكة لوجستيك','سوق عالمية'],
+        keys_fr:['Client first','Opérations','Long terme'],
+        keys_ar:['الزبون أولاً','تشغيل','بعيد المدى']
+      },
+      {
+        id:'tesla', img:'assets/companies/tesla.jpg',
+        region:'Monde', sector:'Énergie',
+        name:'Tesla',
+        desc_fr:'Véhicules électriques & énergie; intégration batterie-logiciel.',
+        desc_ar:'سيارات كهربائية وطاقة؛ دمج البطارية والبرمجيات.',
+        tags:['Énergie','Auto','Tech'],
+        start_fr:'De prototypes à production de masse.',
+        start_ar:'من النماذج للإنتاج الكبير.',
+        steps_fr:['Gigafactories','Autopilot','Stockage énergie'],
+        steps_ar:['مصانع عملاقة','قيادة ذاتية','تخزين الطاقة'],
+        keys_fr:['Innovation','Échelle','Marque'],
+        keys_ar:['ابتكار','حجم','علامة']
+      },
+      {
+        id:'spacex', img:'assets/companies/spacex.jpg',
+        region:'Monde', sector:'Industrie',
+        name:'SpaceX',
+        desc_fr:'Aérospatial; réutilisation des lanceurs & cadence.',
+        desc_ar:'الفضاء؛ إعادة استعمال الصواريخ وتسريع الوتيرة.',
+        tags:['Spatial','Ingénierie','Scale'],
+        start_fr:'Contrats cargo → vols habités.',
+        start_ar:'عقود شحن → رحلات مأهولة.',
+        steps_fr:['Falcon réutilisable','Starlink','Starship'],
+        steps_ar:['فالكون قابل لإعادة الاستخدام','ستارلينك','ستارشيب'],
+        keys_fr:['Coûts bas','R&D','Exécution'],
+        keys_ar:['تكلفة منخفضة','بحث وتطوير','تنفيذ']
+      },
+      {
+        id:'microsoft', img:'assets/companies/microsoft.jpg',
+        region:'Monde', sector:'Tech',
+        name:'Microsoft',
+        desc_fr:'Logiciels, cloud & plateforme; standard PC et écosystème.',
+        desc_ar:'برمجيات، سحابة ومنصة؛ معيار الحواسيب ومنظومة.',
+        tags:['Logiciel','Cloud','Plateforme'],
+        start_fr:'BASIC → MS-DOS → Windows puis cloud.',
+        start_ar:'بيسيك → إم إس دوس → ويندوز ثم السحابة.',
+        steps_fr:['Suite & serveurs','Azure','IA & copilotes'],
+        steps_ar:['حزمة وخوادم','أزور','ذكاء اصطناعي'],
+        keys_fr:['Distribution','Licensing','Écosystème'],
+        keys_ar:['توزيع','ترخيص','منظومة']
+      },
+      {
+        id:'meta', img:'assets/companies/meta.jpg',
+        region:'Monde', sector:'Tech',
+        name:'Facebook (Meta)',
+        desc_fr:'Réseaux sociaux & plateformes; publicité et créateurs.',
+        desc_ar:'شبكات اجتماعية ومنصات؛ إعلانات ومبدعين.',
+        tags:['Social','Plateforme','Ads'],
+        start_fr:'Réseau universitaire → grand public.',
+        start_ar:'شبكة جامعية → عموم المستخدمين.',
+        steps_fr:['News Feed','Mobile-first','VR/AR'],
+        steps_ar:['الخلاصات','موبايل أولاً','واقع افتراضي/معزّز'],
+        keys_fr:['Réseau','Rétention','Monétisation'],
+        keys_ar:['تأثير الشبكة','احتفاظ','تحقيق الدخل']
+      },
+      {
+        id:'alibaba', img:'assets/companies/alibaba.jpg',
+        region:'Monde', sector:'Services',
+        name:'Alibaba Group',
+        desc_fr:'E-commerce, paiements & logistique; focus PME.',
+        desc_ar:'تجارة إلكترونية، مدفوعات ولوجستيك؛ تركيز على الـPME.',
+        tags:['E-commerce','Fintech','Logistique'],
+        start_fr:'B2B → B2C & paiements.',
+        start_ar:'من B2B إلى B2C والمدفوعات.',
+        steps_fr:['Alipay','Réseau logistique','Globalisation'],
+        steps_ar:['أليباي','شبكة لوجستيك','عولمة'],
+        keys_fr:['Effet réseau','Écosystème','Exécution'],
+        keys_ar:['تأثير الشبكة','منظومة','تنفيذ']
+      },
+      {
+        id:'google', img:'assets/companies/google.jpg',
+        region:'Monde', sector:'Tech',
+        name:'Google (Alphabet Inc.)',
+        desc_fr:'Recherche, publicité & cloud; données et IA.',
+        desc_ar:'بحث، إعلانات وسحابة؛ بيانات وذكاء اصطناعي.',
+        tags:['Search','Ads','Cloud'],
+        start_fr:'PageRank → moteur global.',
+        start_ar:'PageRank → محرك عالمي.',
+        steps_fr:['Ads & YouTube','Android & cloud','IA'],
+        steps_ar:['إعلانات ويوتيوب','أندرويد والسحابة','ذكاء اصطناعي'],
+        keys_fr:['Données','Vitesse','Plateformes'],
+        keys_ar:['بيانات','سرعة','منصّات']
+      },
+      {
+        id:'apple', img:'assets/companies/apple.jpg',
+        region:'Monde', sector:'Industrie',
+        name:'Apple Inc.',
+        desc_fr:'Matériel + logiciel; design & écosystème intégré.',
+        desc_ar:'عتاد + برمجيات؛ تصميم ومنظومة متكاملة.',
+        tags:['Produit','Design','Écosystème'],
+        start_fr:'Mac → iPod → iPhone → services.',
+        start_ar:'ماك → آيبود → آيفون → خدمات.',
+        steps_fr:['App Store','SoC maison','Services'],
+        steps_ar:['متجر التطبيقات','معالجات خاصة','خدمات'],
+        keys_fr:['UX','Marque','Intégration'],
+        keys_ar:['تجربة','علامة','تكامل']
+      },
+      {
+        id:'virgin', img:'assets/companies/virgin.jpg',
+        region:'Monde', sector:'Services',
+        name:'Virgin Group',
+        desc_fr:'Conglomérat (musique, aérien, espace…); marque & aventure.',
+        desc_ar:'تكتّل (موسيقى، طيران، فضاء…); علامة وروح مغامرة.',
+        tags:['Brand','Aérien','Diversification'],
+        start_fr:'Retail musique → compagnies & extensions.',
+        start_ar:'تجزئة موسيقية → شركات وتوسّعات.',
+        steps_fr:['Marketing audacieux','Nouvelles industries','Partenariats'],
+        steps_ar:['تسويق جريء','صناعات جديدة','شراكات'],
+        keys_fr:['Marque','Risque','Expérience'],
+        keys_ar:['علامة','مخاطرة','تجربة']
+      },
+      {
+        id:'netflix', img:'assets/companies/netflix.jpg',
+        region:'Monde', sector:'Services',
+        name:'Netflix',
+        desc_fr:'Streaming vidéo; contenu original & abonnement.',
+        desc_ar:'بث فيديو؛ محتوى أصلي واشتراك.',
+        tags:['Media','Streaming','SaaS'],
+        start_fr:'DVD par courrier → streaming global.',
+        start_ar:'DVD بالبريد → بث عالمي.',
+        steps_fr:['Algorithmes reco','Production originale','Globalisation'],
+        steps_ar:['خوارزميات التوصية','إنتاج أصلي','عولمة'],
+        keys_fr:['Contenu','Tech','Distribution'],
+        keys_ar:['محتوى','تقنية','توزيع']
+      }
+    ];
+
+    /* ===== Render ===== */
+    const grid = document.getElementById('c-grid');
+    const q = document.getElementById('q');
+    const loadMoreBtn = document.getElementById('loadMore');
+    const tagButtons = Array.from(document.querySelectorAll('.tag-btn[data-tag]'));
+    const clearBtn = document.querySelector('.tag-btn[data-clear]');
+
+    let activeTags = new Set();  // filters
+    let page = 1;                // pagination
+    const PAGE_SIZE = 6;
+
+    function pill(t){ return `<span class="c-pill">${t}</span>`; }
+    function card(it){
+      return `
+      <article class="c-card" data-id="${it.id}">
+        <img class="c-img" src="${it.img}" alt="">
+        <div class="c-body">
+          <h3 class="c-name">${it.name}</h3>
+          <p class="c-desc" data-lang="fr">${it.desc_fr}</p>
+          <p class="c-desc" data-lang="ar">${it.desc_ar}</p>
+          <div class="c-pills">${it.tags.map(pill).join('')}</div>
+        </div>
+      </article>`;
+    }
+
+    function matches(item, query){
+      const hay = (item.name+' '+item.desc_fr+' '+item.desc_ar+' '+item.region+' '+item.sector+' '+item.tags.join(' ')).toLowerCase();
+      const okQ = !query || hay.includes(query.toLowerCase());
+      const okTags = activeTags.size===0 || [...activeTags].every(t => (item.tags.includes(t) || item.region===t || item.sector===t));
+      return okQ && okTags;
+    }
+
+    function render(){
+      const query = q.value.trim();
+      const filtered = DATA.filter(d => matches(d, query));
+      const total = filtered.length;
+      const slice = filtered.slice(0, PAGE_SIZE * page);
+      grid.innerHTML = slice.map(card).join('');
+      loadMoreBtn.style.display = (slice.length < total) ? 'inline-flex' : 'none';
+    }
+
+    q.addEventListener('input', ()=>{ page=1; render(); });
+    tagButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tag = btn.dataset.tag;
+        if(activeTags.has(tag)){ activeTags.delete(tag); btn.classList.remove('active'); }
+        else{ activeTags.add(tag); btn.classList.add('active'); }
+        page=1; render();
+      });
+    });
+    clearBtn.addEventListener('click', ()=>{
+      activeTags.clear(); tagButtons.forEach(b=>b.classList.remove('active'));
+      q.value=''; page=1; render();
+    });
+    loadMoreBtn.addEventListener('click', ()=>{ page++; render(); });
+
+    render();
+
+    /* ===== Modal logic ===== */
+    const modal = document.getElementById('c-modal');
+    const closeBtn = document.getElementById('m-close');
+    const mTitle = document.getElementById('m-title');
+    const mImg   = document.getElementById('m-img');
+    const mTags  = document.getElementById('m-tags');
+    const mStartFr = document.getElementById('m-start-fr');
+    const mStartAr = document.getElementById('m-start-ar');
+    const mStepsFr = document.getElementById('m-steps-fr');
+    const mStepsAr = document.getElementById('m-steps-ar');
+    const mKeysFr  = document.getElementById('m-keys-fr');
+    const mKeysAr  = document.getElementById('m-keys-ar');
+
+    function ul(items){ return items.map(x=>`<li>${x}</li>`).join(''); }
+
+    grid.addEventListener('click', (e)=>{
+      const card = e.target.closest('.c-card');
+      if(!card) return;
+      const it = DATA.find(x=>x.id===card.dataset.id);
+      if(!it) return;
+      mTitle.textContent = it.name;
+      mImg.src = it.img;
+      mTags.innerHTML = it.tags.map(t=>`<span class="pill">${t}</span>`).join('');
+      mStartFr.textContent = it.start_fr;
+      mStartAr.textContent = it.start_ar;
+      mStepsFr.innerHTML = ul(it.steps_fr);
+      mStepsAr.innerHTML = ul(it.steps_ar);
+      mKeysFr.innerHTML = ul(it.keys_fr);
+      mKeysAr.innerHTML = ul(it.keys_ar);
+      modal.classList.add('on');
+      modal.setAttribute('aria-hidden','false');
+    });
+
+    function close(){ modal.classList.remove('on'); modal.setAttribute('aria-hidden','true'); }
+    closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) close(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
+  </script>
+</body>
+</html>

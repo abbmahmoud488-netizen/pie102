@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="fr" data-ui-lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Entrepreneurs – Module PIE | OFPPT</title>
+  <link rel="stylesheet" href="assets/style.css">
+  <style>
+    /* ====== Extras for Entrepreneurs page ====== */
+    .toolbar{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+    .search-input{
+      flex:1 1 280px; border:1px solid var(--border); background:var(--panel);
+      color:var(--text); padding:10px 12px; border-radius:10px; outline:none;
+    }
+    .search-input:focus{ box-shadow: var(--ring); }
+    .tag-btn{
+      border:1px solid var(--border); background:var(--panel); color:var(--muted);
+      padding:8px 12px; border-radius:999px; cursor:pointer; user-select:none;
+    }
+    .tag-btn.active{ background:linear-gradient(135deg,var(--brand),var(--accent)); color:#fff; border-color:transparent; }
+
+    .e-grid{ display:grid; gap:28px; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    @media (max-width: 1100px){ .e-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 720px){ .e-grid{ grid-template-columns: 1fr; } }
+
+    .e-card{
+      position:relative; overflow:hidden;
+      border:1px solid var(--border); border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      box-shadow: var(--shadow); cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, background .25s ease;
+    }
+    .e-card:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+    .e-img{ width:100%; aspect-ratio:16/9; object-fit:cover; display:block; border-bottom:1px solid var(--border); }
+    .e-body{ padding:16px 16px 18px; }
+    .e-name{ margin:6px 0 6px; font-weight:900; font-size: clamp(1.05rem, .9rem + .7vw, 1.35rem); }
+    .e-desc{ color:var(--muted); margin:0 0 10px; }
+    .e-pills{ display:flex; gap:8px; flex-wrap:wrap; }
+    .e-pill{ border:1px solid var(--border); background:var(--panel); color:var(--muted); border-radius:999px; padding:6px 10px; font-size:.85rem; }
+
+    .load-more{ display:block; margin:28px auto 0; }
+
+    /* Modal */
+    .modal{ position:fixed; inset:0; display:none; place-items:center; padding:18px; background: rgba(0,0,0,.55); z-index:90; }
+    .modal.on{ display:grid; }
+    .modal-box{
+      width:min(900px, 94vw);
+      background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.03));
+      border:1px solid var(--border); border-radius:22px; box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .modal-head{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding:16px 18px; border-bottom:1px solid var(--border); }
+    .modal-head h3{ margin:0; font-size:1.4rem; }
+    .modal-close{ border:1px solid var(--border); background:var(--panel); color:var(--text); border-radius:10px; padding:8px 12px; cursor:pointer; }
+    .modal-content{ display:grid; grid-template-columns: 180px 1fr; gap:18px; padding:18px; }
+    @media (max-width: 720px){ .modal-content{ grid-template-columns: 1fr; } }
+    .modal-img{ width:100%; border-radius:12px; border:1px solid var(--border); background:#0b1220; }
+    .story h4{ margin:10px 0 6px; }
+    .meta{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .meta .pill{ border:1px solid var(--border); background:var(--panel); border-radius:999px; padding:6px 10px; color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="container nav-inner">
+      <a class="brand" href="index.html" aria-label="Accueil">
+        <span class="logo" aria-hidden="true">🧭</span>
+        <span>PIE • OFPPT</span>
+      </a>
+      <nav class="nav-links">
+        <a href="index.html">Intro</a>
+        <a href="entrepreneurs.html">Entrepreneurs</a>
+        <a href="entreprises.html">Entreprises</a>
+        <a href="parcours.html">Mon Parcours</a>
+      </nav>
+      <div class="controls">
+        <button class="lang-switch" data-switch-lang><span class="icon">🌐</span><span data-lang-pill>FR</span></button>
+        <button class="theme-toggle" data-theme-toggle><span class="icon">🌓</span> <span data-theme-pill>Dark</span></button>
+      </div>
+    </div>
+  </header>
+
+  <section class="section hero">
+    <div class="container">
+      <h1 class="m0"><span data-lang="fr">Entrepreneurs & Récits</span><span data-lang="ar">مقاولون وقصص</span></h1>
+      <p class="lead max-900"><span data-lang="fr">Études de cas (Maroc & Monde) + recherche & filtres.</span><span data-lang="ar">حالات من المغرب والعالم مع بحث وفلاتر.</span></p>
+    </div>
+  </section>
+
+  <main class="section">
+    <div class="container">
+
+      <!-- ===== Toolbar: search + tag filters ===== -->
+      <div class="toolbar">
+        <input id="q" class="search-input" placeholder="Rechercher / ابحث" />
+        <button class="tag-btn" data-tag="Maroc">Maroc</button>
+        <button class="tag-btn" data-tag="Monde">Monde</button>
+        <button class="tag-btn" data-tag="Tech">Tech</button>
+        <button class="tag-btn" data-tag="Retail">Retail</button>
+        <button class="tag-btn" data-tag="Fintech">Fintech</button>
+        <button class="tag-btn" data-tag="Énergie">Énergie</button>
+        <button class="tag-btn" data-clear>Tout / الكل</button>
+      </div>
+
+      <div class="e-grid" id="e-grid"></div>
+
+      <div class="center">
+        <button id="loadMore" class="btn load-more">Charger plus / عرض المزيد</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ===== Modal ===== -->
+  <div class="modal" id="e-modal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="m-title">—</h3>
+        <button class="modal-close" id="m-close">✕</button>
+      </div>
+      <div class="modal-content">
+        <img id="m-img" class="modal-img" src="" alt="">
+        <div class="story">
+          <div class="meta" id="m-tags"></div>
+
+          <h4 data-lang="fr">Comment a-t-il/elle commencé ?</h4>
+          <h4 data-lang="ar">كيفاش بدا(ت)؟</h4>
+          <p id="m-start-fr" data-lang="fr"></p>
+          <p id="m-start-ar" data-lang="ar"></p>
+
+          <h4 data-lang="fr">Évolution & jalons</h4>
+          <h4 data-lang="ar">تطوّر ومحطات</h4>
+          <ul id="m-steps-fr" data-lang="fr"></ul>
+          <ul id="m-steps-ar" data-lang="ar"></ul>
+
+          <h4 data-lang="fr">Clés de réussite</h4>
+          <h4 data-lang="ar">مفاتيح النجاح</h4>
+          <ul id="m-keys-fr" data-lang="fr"></ul>
+          <ul id="m-keys-ar" data-lang="ar"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div data-lang="fr">Fait pour Mahmoud • OFPPT • Module PIE — Site bilingue (FR/AR).</div>
+      <div data-lang="ar">مصنوع لمحمود • OFPPT • وحدة PIE — موقع ثنائي اللغة (فرنسية/عربية).</div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+  <script>
+    /* ===== DATA (Maroc + Monde) ===== */
+    const DATA = [
+      // ===================== 🇲🇦 Mgharba =====================
+      {
+        id:'nezha-alaoui', img:'assets/people/nezha-alaoui.jpg',
+        region:'Maroc', domain:'Impact',
+        name:'Nezha Alaoui',
+        desc_fr:"Entrepreneuriat social & leadership féminin; programmes d’impact et contenus média.",
+        desc_ar:"ريادة أعمال اجتماعية وتمكين النساء؛ برامج تأثير ومحتوى إعلامي.",
+        tags:['Impact','Women','Media'],
+        start_fr:"Démarre par des ateliers & contenus pour communautés de femmes.",
+        start_ar:"بدأت بورشات ومحتوى موجّه لمجتمعات النساء.",
+        steps_fr:["Création communauté.","Programmes d’accompagnement.","Partenariats avec marques."],
+        steps_ar:["بناء مجتمع.","برامج مواكبة.","شراكات مع علامات."],
+        keys_fr:["Mission claire","Communauté","Partenariats"],
+        keys_ar:["رسالة واضحة","مجتمع نشِط","شراكات"]
+      },
+      {
+        id:'anas-sefrioui', img:'assets/people/anas-sefrioui.jpg',
+        region:'Maroc', domain:'Immobilier',
+        name:'Anas Sefrioui',
+        desc_fr:"Immobilier & construction; industrialisation du logement à grande échelle.",
+        desc_ar:"العقار والبناء؛ تصنيع السكن على نطاق واسع.",
+        tags:['Immobilier','Construction','Expansion'],
+        start_fr:"Débute par projets logement accessibles.",
+        start_ar:"انطلق بمشاريع سكن في المتناول.",
+        steps_fr:["Intégration construction.","Optimisation coûts.","Extension nationale."],
+        steps_ar:["دمج حلقات البناء.","ترشيد التكاليف.","توسّع وطني."],
+        keys_fr:["Échelle","Coûts maîtrisés","Process"],
+        keys_ar:["الحجم","تكاليف مضبوطة","عمليات"]
+      },
+      {
+        id:'mhammed-abbad-andaloussi', img:'assets/people/mhammed-abbad-andaloussi.jpg',
+        region:'Maroc', domain:'Éducation',
+        name:'M’hammed Abbad Andaloussi',
+        desc_fr:"Éducation & mentoring entrepreneurial; pont entre écoles et entreprises.",
+        desc_ar:"التعليم والمواكبة المقاولاتية؛ جسر بين المدارس والمقاولات.",
+        tags:['Éducation','Mentorat','Impact'],
+        start_fr:"Lance des initiatives reliant élèves, mentors et entreprises.",
+        start_ar:"أطلق مبادرات تربط التلاميذ بالمرشدين والمؤسسات.",
+        steps_fr:["Programmes terrain.","Partenariats écoles.","Événements & défis."],
+        steps_ar:["برامج ميدانية.","شراكات مع المدارس.","فعاليات وتحديات."],
+        keys_fr:["Réseau","Pédagogie active","Rôle modèles"],
+        keys_ar:["شبكة","تعلم نشِط","قدوات"]
+      },
+      {
+        id:'mohamed-el-ghaissani', img:'assets/people/mohamed-el-ghaissani.jpg',
+        region:'Maroc', domain:'Industrie',
+        name:'Mohamed El Ghaissani',
+        desc_fr:"Entrepreneuriat industriel & logistique; orientation qualité et export.",
+        desc_ar:"مقاولة صناعية ولوجستيك؛ تركيز على الجودة والتصدير.",
+        tags:['Industrie','Logistique','Export'],
+        start_fr:"Commence par activités industrielles orientées qualité.",
+        start_ar:"انطلق بأنشطة صناعية مركّزة على الجودة.",
+        steps_fr:["Standardisation.","Modernisation chaîne.","Accès export."],
+        steps_ar:["تقييس.","تحديث السلسلة.","ولوج التصدير."],
+        keys_fr:["Qualité","Process","Partenariats"],
+        keys_ar:["جودة","عمليات","شراكات"]
+      },
+      {
+        id:'yassine-medaghri-alaoui', img:'assets/people/yassine-medaghri-alaoui.jpg',
+        region:'Maroc', domain:'Tech',
+        name:'Yassine Medaghri Alaoui',
+        desc_fr:"Écosystème startup & tech; programmes, mentoring et communautés.",
+        desc_ar:"منظومة الستارت-أب والتقنية؛ برامج ومواكبة وبناء مجتمعات.",
+        tags:['Startup','Ecosystème','Mentorat'],
+        start_fr:"Initie programmes pour connecter startups, corporates et mentors.",
+        start_ar:"أطلق برامج لربط الستارت-أبات بالشركات والمرشدين.",
+        steps_fr:["Bootcamps.","Open innovation.","Scaling d’initiatives."],
+        steps_ar:["معسكرات تدريب.","ابتكار مفتوح.","توسيع المبادرات."],
+        keys_fr:["Réseau","Exécution","Visibilité"],
+        keys_ar:["شبكة","تنفيذ","إبراز"]
+      },
+      {
+        id:'salwa-idrissi-akhannouch', img:'assets/people/salwa-idrissi-akhannouch.jpg',
+        region:'Maroc', domain:'Retail',
+        name:'Salwa Idrissi Akhannouch',
+        desc_fr:"Retail & marques internationales; centres commerciaux et opérations d’excellence.",
+        desc_ar:"التجزئة والعلامات الدولية؛ مراكز تسوق وتشغيل ممتاز.",
+        tags:['Retail','Marques','Centres'],
+        start_fr:"Apporte des franchises internationales haut de gamme.",
+        start_ar:"جلبت امتيازات دولية راقية.",
+        steps_fr:["Ouverture centres.","Portefeuille marques.","Expérience client."],
+        steps_ar:["افتتاح المراكز.","تنويع العلامات.","تجربة الزبون."],
+        keys_fr:["Positionnement","Partenariats","Opérations"],
+        keys_ar:["تموقع","شراكات","تشغيل"]
+      },
+      {
+        id:'othman-benjelloun', img:'assets/people/othman-benjelloun.jpg',
+        region:'Maroc', domain:'Finance',
+        name:'Othman Benjelloun',
+        desc_fr:"Banque & investissement; développement régional et international.",
+        desc_ar:"بنوك واستثمار؛ تنمية إقليمية ودولية.",
+        tags:['Banque','Investissement','Expansion'],
+        start_fr:"Renforce les services bancaires et l’innovation financière.",
+        start_ar:"قوّى الخدمات البنكية والابتكار المالي.",
+        steps_fr:["Modernisation digitale.","Réseau régional.","Partenariats stratégiques."],
+        steps_ar:["تحول رقمي.","شبكة إقليمية.","شراكات استراتيجية."],
+        keys_fr:["Gouvernance","Innovation","Risque maîtrisé"],
+        keys_ar:["حوكمة","ابتكار","تدبير المخاطر"]
+      },
+      {
+        id:'mostafa-terrab', img:'assets/people/mostafa-terrab.jpg',
+        region:'Maroc', domain:'Industrie',
+        name:'Mostafa Terrab',
+        desc_fr:"Transformation industrielle & durabilité (mines/engrais); innovation & supply-chain.",
+        desc_ar:"تحوّل صناعي واستدامة (مناجم/أسمدة)؛ ابتكار وسلاسل توريد.",
+        tags:['Industrie','Transformation','Durabilité'],
+        start_fr:"Pilote modernisation et projets d’innovation.",
+        start_ar:"قاد التحديث ومشاريع الابتكار.",
+        steps_fr:["Montée en capacité.","Chaîne logistique.","Initiatives RSE."],
+        steps_ar:["رفع الطاقة الإنتاجية.","سلاسل لوجستية.","مبادرات مسؤولية اجتماعية."],
+        keys_fr:["Vision","Ingénierie","Exécution"],
+        keys_ar:["رؤية","هندسة","تنفيذ"]
+      },
+      {
+        id:'mehdi-alaoui', img:'assets/people/mehdi-alaoui.jpg',
+        region:'Maroc', domain:'Tech',
+        name:'Mehdi Alaoui',
+        desc_fr:"Open innovation & programmes startup; pont entre grandes entreprises et jeunes pousses.",
+        desc_ar:"ابتكار مفتوح وبرامج ستارت-أب؛ جسر بين الشركات الكبرى والمبتدئين.",
+        tags:['Open Innovation','Startup','Formation'],
+        start_fr:"Crée des challenges & labs d’innovation.",
+        start_ar:"أنشأ تحديات ومختبرات ابتكار.",
+        steps_fr:["Programmes corporate.","Communautés.","Scale d’initiatives."],
+        steps_ar:["برامج للشركات.","مجتمعات.","توسيع المبادرات."],
+        keys_fr:["Animation","Réseau","Livrables"],
+        keys_ar:["تنشيط","شبكة","نتائج"]
+      },
+      {
+        id:'khalid-benzakour', img:'assets/people/khalid-benzakour.jpg',
+        region:'Maroc', domain:'Industrie',
+        name:'Khalid Benzakour',
+        desc_fr:"Management industriel & représentation patronale; structuration & qualité.",
+        desc_ar:"تسيير صناعي وتمثيل مهني؛ هيكلة وجودة.",
+        tags:['Industrie','Management','Réseau'],
+        start_fr:"Conduit projets d’amélioration continue.",
+        start_ar:"قاد مشاريع التحسين المستمر.",
+        steps_fr:["Process & qualité.","Montée en compétences.","Partenariats sectoriels."],
+        steps_ar:["عمليات وجودة.","رفع المهارات.","شراكات قطاعية."],
+        keys_fr:["Organisation","Qualité","Leadership"],
+        keys_ar:["تنظيم","جودة","قيادة"]
+      },
+
+      // ===================== 🌍 Ajanib =====================
+      {
+        id:'jeff-bezos', img:'assets/people/jeff-bezos.jpg',
+        region:'Monde', domain:'Retail',
+        name:'Jeff Bezos',
+        desc_fr:"Amazon: obsession client, logistique et marketplace à l’échelle.",
+        desc_ar:"أمازون: هوس بالزبون، لوجستيك، ومنصة على نطاق عالمي.",
+        tags:['Retail','Plateforme','Logistique'],
+        start_fr:"Librairie en ligne → diversification.",
+        start_ar:"مكتبة على النت → تنويع.",
+        steps_fr:["Prime & AWS.","Marketplace globale.","Automatisation."],
+        steps_ar:["برايم وAWS.","سوق عالمية.","أتمتة."],
+        keys_fr:["Client first","Opérations","Long terme"],
+        keys_ar:["الزبون أولاً","تشغيل","بعيد المدى"]
+      },
+      {
+        id:'elon-musk', img:'assets/people/elon-musk.jpg',
+        region:'Monde', domain:'Tech',
+        name:'Elon Musk',
+        desc_fr:"Tesla/SpaceX: prise de risque & innovation radicale (énergie, spatial).",
+        desc_ar:"تسلا/سبيس إكس: مخاطرة وابتكار جذري (الطاقة والفضاء).",
+        tags:['Innovation','Énergie','Spatial'],
+        start_fr:"De PayPal à l’industrie spatiale & véhicules électriques.",
+        start_ar:"من بايبال للصناعة الفضائية والسيارات الكهربائية.",
+        steps_fr:["Réutilisation fusées.","Scale production.","Tech batterie."],
+        steps_ar:["إعادة استعمال الصواريخ.","رفع الإنتاج.","تقنيات البطاريات."],
+        keys_fr:["Vision","Ingénierie","Exécution"],
+        keys_ar:["رؤية","هندسة","تنفيذ"]
+      },
+      {
+        id:'mark-zuckerberg', img:'assets/people/mark-zuckerberg.jpg',
+        region:'Monde', domain:'Tech',
+        name:'Mark Zuckerberg',
+        desc_fr:"Meta: réseaux sociaux à l’échelle, produits sociaux et plateformes.",
+        desc_ar:"ميتا: شبكات اجتماعية على نطاق واسع ومنتجات منصّات.",
+        tags:['Plateforme','Social','Produit'],
+        start_fr:"Réseau universitaire → ouverture grand public.",
+        start_ar:"شبكة جامعية → انفتاح للعموم.",
+        steps_fr:["News Feed.","Mobile-first.","Écosystème créateurs."],
+        steps_ar:["خلاصات.","موبايل أولاً.","منظومة المبدعين."],
+        keys_fr:["Rétention","Réseau","Monétisation"],
+        keys_ar:["الاحتفاظ","تأثير الشبكة","تحقيق الدخل"]
+      },
+      {
+        id:'bill-gates', img:'assets/people/bill-gates.jpg',
+        region:'Monde', domain:'Logiciel',
+        name:'Bill Gates',
+        desc_fr:"Microsoft: plateforme logicielle & standard PC; philanthropie.",
+        desc_ar:"مايكروسوفت: منصة برمجيات ومعيار الحاسوب؛ عمل خيري.",
+        tags:['Plateforme','Logiciel','Stratégie'],
+        start_fr:"Altair BASIC → MS-DOS puis Windows.",
+        start_ar:"ألتاير بيسيك → إم إس دوس ثم ويندوز.",
+        steps_fr:["Standardisation.","Suite bureautique.","Cloud."],
+        steps_ar:["توحيد المعايير.","حزمة مكتبية.","سحابة."],
+        keys_fr:["Écosystème","Licensing","Distribution"],
+        keys_ar:["منظومة","ترخيص","توزيع"]
+      },
+      {
+        id:'jack-ma', img:'assets/people/jack-ma.jpg',
+        region:'Monde', domain:'Plateforme',
+        name:'Jack Ma',
+        desc_fr:"Alibaba: e-commerce, paiements & logistique; focus PME.",
+        desc_ar:"علي بابا: تجارة إلكترونية ومدفوعات ولوجستيك؛ تركيز على الـPME.",
+        tags:['E-commerce','Fintech','Logistique'],
+        start_fr:"Place de marché B2B → B2C.",
+        start_ar:"من سوق B2B إلى B2C.",
+        steps_fr:["Alipay.","Réseau logistique.","Globalisation."],
+        steps_ar:["أليباي.","شبكة لوجستيك.","عولمة."],
+        keys_fr:["Effet réseau","Écosystème","Exécution"],
+        keys_ar:["تأثير الشبكة","منظومة","تنفيذ"]
+      },
+      {
+        id:'steve-jobs', img:'assets/people/steve-jobs.jpg',
+        region:'Monde', domain:'Produit',
+        name:'Steve Jobs',
+        desc_fr:"Apple: design épuré, intégration matériel-logiciel, marketing émotionnel.",
+        desc_ar:"آبل: تصميم بسيط، تكامل عتاد وبرمجيات وتسويق عاطفي.",
+        tags:['Design','Produit','Marketing'],
+        start_fr:"Garage → Apple I avec Wozniak.",
+        start_ar:"كراج → Apple I مع ووزنياك.",
+        steps_fr:["Macintosh.","Retour 1997.","iPhone."],
+        steps_ar:["ماكنتوش.","العودة 1997.","آيفون."],
+        keys_fr:["UX","Focus produit","Écosystème"],
+        keys_ar:["تجربة المستخدم","تركيز","منظومة"]
+      },
+      {
+        id:'larry-page', img:'assets/people/larry-page.jpg',
+        region:'Monde', domain:'Recherche',
+        name:'Larry Page',
+        desc_fr:"Google: moteur de recherche & algorithmes; innovation à grande échelle.",
+        desc_ar:"غوغل: محرك بحث وخوارزميات؛ ابتكار على نطاق كبير.",
+        tags:['Search','Algorithmes','Scale'],
+        start_fr:"PageRank en laboratoire → produit web.",
+        start_ar:"بيج رانك في المختبر → منتج ويب.",
+        steps_fr:["Monétisation Ads.","Infra globale.","Diversification."],
+        steps_ar:["إعلانات.","بنية تحتية عالمية.","تنويع."],
+        keys_fr:["Tech","Données","Vitesse"],
+        keys_ar:["تقنية","بيانات","سرعة"]
+      },
+      {
+        id:'sergey-brin', img:'assets/people/sergey-brin.jpg',
+        region:'Monde', domain:'Recherche',
+        name:'Sergey Brin',
+        desc_fr:"Google: co-fondateur; recherche, produits et moonshots.",
+        desc_ar:"غوغل: مؤسِّس مشارك؛ بحث ومنتجات ومشاريع طموحة.",
+        tags:['Search','Produit','Innovation'],
+        start_fr:"Recherche universitaire → startup.",
+        start_ar:"بحث جامعي → شركة ناشئة.",
+        steps_fr:["R&D.","Produits grand public.","Projets X."],
+        steps_ar:["بحث وتطوير.","منتجات للمستخدمين.","مشاريع X."],
+        keys_fr:["Curiosité","Exécution","Ambition"],
+        keys_ar:["فضول","تنفيذ","طموح"]
+      },
+      {
+        id:'oprah-winfrey', img:'assets/people/oprah-winfrey.jpg',
+        region:'Monde', domain:'Media',
+        name:'Oprah Winfrey',
+        desc_fr:"Médias & production; marque personnelle forte et philanthropie.",
+        desc_ar:"إعلام وإنتاج؛ علامة شخصية قوية وأعمال خيرية.",
+        tags:['Media','Marque','Impact'],
+        start_fr:"Émission → réseau de médias & production.",
+        start_ar:"برنامج → شبكة إعلام وإنتاج.",
+        steps_fr:["Shows & contenus.","Maison de production.","Partenariats marques."],
+        steps_ar:["برامج ومحتوى.","شركة إنتاج.","شراكات علامات."],
+        keys_fr:["Storytelling","Audience","Authenticité"],
+        keys_ar:["حكي القصص","جمهور","أصالة"]
+      },
+      {
+        id:'richard-branson', img:'assets/people/richard-branson.jpg',
+        region:'Monde', domain:'Diversifié',
+        name:'Richard Branson',
+        desc_fr:"Virgin: conglomérat (musique, aérien, espaces…); esprit aventure & marque.",
+        desc_ar:"فيرجن: تكتّل (موسيقى، طيران، فضاء…); روح مغامرة وعلامة قوية.",
+        tags:['Brand','Aérien','Aventure'],
+        start_fr:"Magasins musique → compagnies & extensions.",
+        start_ar:"متاجر موسيقى → شركات وتوسّعات.",
+        steps_fr:["Diversification.","Marketing audacieux.","Nouvelles industries."],
+        steps_ar:["تنويع.","تسويق جريء.","صناعات جديدة."],
+        keys_fr:["Marque","Risque","Expérience"],
+        keys_ar:["علامة","مخاطرة","تجربة"]
+      }
+    ];
+
+    /* ===== Render with search + filters + pagination ===== */
+    const grid = document.getElementById('e-grid');
+    const q = document.getElementById('q');
+    const loadMoreBtn = document.getElementById('loadMore');
+    const tagButtons = Array.from(document.querySelectorAll('.tag-btn[data-tag]'));
+    const clearBtn = document.querySelector('.tag-btn[data-clear]');
+
+    let activeTags = new Set();  // filters
+    let page = 1;                // pagination
+    const PAGE_SIZE = 6;
+
+    function pill(t){ return `<span class="e-pill">${t}</span>`; }
+    function card(it){
+      return `
+      <article class="e-card" data-id="${it.id}">
+        <img class="e-img" src="${it.img}" alt="">
+        <div class="e-body">
+          <h3 class="e-name">${it.name}</h3>
+          <p class="e-desc" data-lang="fr">${it.desc_fr}</p>
+          <p class="e-desc" data-lang="ar">${it.desc_ar}</p>
+          <div class="e-pills">${it.tags.map(pill).join('')}</div>
+        </div>
+      </article>`;
+    }
+
+    function matches(item, query){
+      const hay = (item.name+' '+item.desc_fr+' '+item.desc_ar+' '+item.region+' '+item.domain+' '+item.tags.join(' ')).toLowerCase();
+      const okQ = !query || hay.includes(query.toLowerCase());
+      const okTags = activeTags.size===0 || [...activeTags].every(t => (item.tags.includes(t) || item.region===t || item.domain===t));
+      return okQ && okTags;
+    }
+
+    function render(){
+      const query = q.value.trim();
+      const filtered = DATA.filter(d => matches(d, query));
+      const total = filtered.length;
+      const slice = filtered.slice(0, PAGE_SIZE * page);
+      grid.innerHTML = slice.map(card).join('');
+      loadMoreBtn.style.display = (slice.length < total) ? 'inline-flex' : 'none';
+    }
+
+    q.addEventListener('input', ()=>{ page=1; render(); });
+    tagButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const tag = btn.dataset.tag;
+        if(activeTags.has(tag)){ activeTags.delete(tag); btn.classList.remove('active'); }
+        else{ activeTags.add(tag); btn.classList.add('active'); }
+        page=1; render();
+      });
+    });
+    clearBtn.addEventListener('click', ()=>{
+      activeTags.clear(); tagButtons.forEach(b=>b.classList.remove('active'));
+      q.value=''; page=1; render();
+    });
+    loadMoreBtn.addEventListener('click', ()=>{ page++; render(); });
+
+    render();
+
+    /* ===== Modal logic ===== */
+    const modal = document.getElementById('e-modal');
+    const closeBtn = document.getElementById('m-close');
+    const mTitle = document.getElementById('m-title');
+    const mImg   = document.getElementById('m-img');
+    const mTags  = document.getElementById('m-tags');
+    const mStartFr = document.getElementById('m-start-fr');
+    const mStartAr = document.getElementById('m-start-ar');
+    const mStepsFr = document.getElementById('m-steps-fr');
+    const mStepsAr = document.getElementById('m-steps-ar');
+    const mKeysFr  = document.getElementById('m-keys-fr');
+    const mKeysAr  = document.getElementById('m-keys-ar');
+
+    function ul(items){ return items.map(x=>`<li>${x}</li>`).join(''); }
+
+    grid.addEventListener('click', (e)=>{
+      const card = e.target.closest('.e-card');
+      if(!card) return;
+      const it = DATA.find(x=>x.id===card.dataset.id);
+      if(!it) return;
+      mTitle.textContent = it.name;
+      mImg.src = it.img;
+      mTags.innerHTML = it.tags.map(t=>`<span class="pill">${t}</span>`).join('');
+      mStartFr.textContent = it.start_fr;
+      mStartAr.textContent = it.start_ar;
+      mStepsFr.innerHTML = ul(it.steps_fr);
+      mStepsAr.innerHTML = ul(it.steps_ar);
+      mKeysFr.innerHTML = ul(it.keys_fr);
+      mKeysAr.innerHTML = ul(it.keys_ar);
+      modal.classList.add('on');
+      modal.setAttribute('aria-hidden','false');
+    });
+
+    function close(){ modal.classList.remove('on'); modal.setAttribute('aria-hidden','true'); }
+    closeBtn.addEventListener('click', close);
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) close(); });
+    window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') close(); });
+  </script>
+</body>
+</html>

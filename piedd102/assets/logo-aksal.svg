@@ -1,0 +1,5 @@
+<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'>
+<defs><linearGradient id='g' x1='0' x2='1'><stop stop-color='#3a7bfd'/><stop offset='1' stop-color='#00d4ff'/></linearGradient></defs>
+<rect width='120' height='80' rx='12' fill='url(#g)'/>
+<text x='50%' y='52%' font-size='26' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'>AKSAL</text>
+</svg>
